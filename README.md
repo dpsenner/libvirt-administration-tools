@@ -10,16 +10,16 @@ Please read the contributing guidelines before starting to work on a patch, writ
 
 ## Check if the virtual machine is running
 
-`
+```
 ~$ virsh list --all
-`
+```
 
 ## Starting the virtual machine
 
 
-`
+```
 ~$ virsh start $domain
-`
+```
 
 ## Graceful shutdown of the virtual machine
 
@@ -41,7 +41,7 @@ This is a check list of things that need to be done to make daily backups of a d
 
 ## Live backup fails on a domain
 
-We observed that sometimes live backup fails with the following message:
+We observed that sometimes live backups fail with the following message:
 
 ```
 error: failed to pivot job for disk hda
