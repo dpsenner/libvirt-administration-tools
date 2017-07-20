@@ -23,6 +23,16 @@ This document serves as a resource of information and provides information on ho
 ~$ virsh shutdown $domain
 ```
 
+## Set up daily live backups
+
+This is a check list of things that need to be done to make daily backups of a domain. The following steps assume that a domain exists on the same machine, is running 24\*7 and the domain name of the virtualized guest is $domain.
+
+* Clone and checkout the master branch of this repository
+* Open crontab editor by executing `crontab -e`
+* Add the following line to the cronjobs
+* `30 23 * * * /absolute-path-to/libvirt-administration-tools/vm-live-backup.sh $domain`
+* Save and exit the editor
+
 # Known issues
 
 ## Live backup fails on a domain
@@ -40,8 +50,8 @@ This means that the backup was made but all the data that was written to hda of 
 Fixing this is quite easy and can ideally be done while the virtual machine still runs by executing the following commands in this order:
 
 ```
-libvirt-administration-tools/$ ./blockjob-abort.sh $domain
-libvirt-administration-tools/$ ./blockcommit.sh $domain
+~/libvirt-administration-tools$ ./blockjob-abort.sh $domain
+~/libvirt-administration-tools$ ./blockcommit.sh $domain
 ```
 
 If the second command fails again, it is necessary to shut down the virtual machine and retry this operation while the virtual machine is offline.
