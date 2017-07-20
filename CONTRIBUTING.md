@@ -41,7 +41,7 @@ This Code of Conduct is adapted from the Contributor Covenant, version 1.4, avai
 
 ## Writing patches
 
-When contributing to this repository please think of yourself of being a story teller. Someone else is going to review your changes and will have to make a sense of it. If the reviewer has a story to read it helps a lot to put a meaning into all the modifications. On the other hand, if a story is complicated and is too hard to follow and understand, a reviewer will most likely give up reading it and simply refuse the pull request.
+When contributing to this repository please think of yourself of being a story teller. Someone else is going to review your changes and will have to make a sense of it. If the reviewer has a story to read it helps a lot to put a meaning into all the modifications. On the other hand, if a story is complicated and is too hard to follow and understand, a reviewer will most likely give up reading it and simply refuse to apply the patches.
 
 ## Gitflow
 
@@ -74,7 +74,9 @@ Modifications that change functionality should be backed up with a story that ex
 ```
 Backups: fixed backups to work on sundays
 
-This patch improves a conditional expression to work also on Sundays. Until now backups did not work on Sundays because there was a bad conditional expression that caused the script to exit.
+This patch improves a conditional expression to work also on Sundays. Until now
+backups did not work on Sundays because there was a bad conditional expression
+that caused the script to exit.
 ```
 
 ## Pull requests
