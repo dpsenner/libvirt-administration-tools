@@ -1,6 +1,10 @@
-# Generic
+# Introduction
 
 This document serves as a resource of information and provides information on how to maintain virtual machines.
+
+# Contributing
+
+Please read the contributing guidelines before starting to work on a patch, writing issues or file a pull request. The contributing guidelines are available [here](CONTRIBUTING.md).
 
 # Common operations
 
