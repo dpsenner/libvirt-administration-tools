@@ -40,8 +40,8 @@ This means that the backup was made but all the data that was written to hda of 
 Fixing this is quite easy and can ideally be done while the virtual machine still runs by executing the following commands in this order:
 
 `
-virsh blockjob $domain hda --abort
-virsh blockcommit $domain hda --active --pivot
+./blockjob-abort.sh $domain
+./blockcommit.sh $domain
 `
 
 If the second command fails again, it is necessary to shut down the virtual machine and retry this operation while the virtual machine is offline.
