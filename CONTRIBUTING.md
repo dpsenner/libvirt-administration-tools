@@ -39,13 +39,24 @@ This Code of Conduct applies both within project spaces and in public spaces whe
 
 This Code of Conduct is adapted from the Contributor Covenant, version 1.4, available [here](http://contributor-covenant.org/version/1/4).
 
-## Writing patches
+## Patches
 
-When contributing to this repository please think of yourself of being a story teller. Someone else is going to review your changes and will have to make a sense of it. If the reviewer has a story to read it helps a lot to put a meaning into all the modifications. On the other hand, if a story is complicated and is too hard to follow and understand, a reviewer will most likely give up reading it and simply refuse to apply the patches.
+When contributing patches to this repository please think of yourself of being a story teller. Someone else is going to review your changes and will have to make a sense of it. If the reviewer has a story to read it helps a lot to put a meaning into all the modifications. On the other hand, if a story is complicated and is too hard to follow and understand, a reviewer will most likely give up reading it and simply refuse to apply the patches.
 
 ## Gitflow
 
 This project uses gitflow, so please base all your modifications on the branch develop. If the modifications are large and will take a considerable amount of time, it could make sense to create a feature branch that branches from develop. This allows you to separate your modifications from future modifications in the develop branch.
+
+The master branch is there to track the latest published codebase. Therefore master will most of the times be behind develop. Only things that are well tested and are ready for production should be merged into master. This is typically done by completing a release process.
+
+A release process starts by creating a release branch. That release branch should be named by the version it targets to release prefixed with `release/`. To prepare the release of `v1.0`, the release branch would therefore be `release/v1.0`. It is only allowed to make release related modifications to the codebase in a release branch. Such modifications include:
+
+* adapt version strings
+* modify informational parts of the codebase like comments, documentation, readme, ..
+
+When the codebase in a release branch is ready for the release, the head of that branch should be merged to master and be tagged with the released version.
+
+Hotfixes branch from a tagged release on the master branch and when all the modifications are made, the release process starts like if it was the develop branch.
 
 ## Commits and commit messages
 
