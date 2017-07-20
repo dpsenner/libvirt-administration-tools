@@ -5,18 +5,13 @@
 #
 DOMAIN="$1"
 BACKUPDEST="$2"
-MAXBACKUPS="$3"
 
 if [ -z "$BACKUPDEST" ]; then
     BACKUPDEST="/var/data/virtuals/backups"
 fi
 
-if [ -z "$MAXBACKUPS" ]; then
-    MAXBACKUPS=6
-fi
-
 if [ -z "$BACKUPDEST" -o -z "$DOMAIN" ]; then
-    echo "Usage: ./vm-live-backup <domain> [backup-folder] [max-backups]"
+    echo "Usage: ./vm-live-backup <domain> [backup-folder]"
     exit 1
 fi
 
@@ -117,30 +112,9 @@ virsh dumpxml "$DOMAIN" >"$BACKUP/$DOMAIN.xml"
 GZIP=-1 tar -czf "$BACKUP.tar.gz" -C "$BACKUP" --remove-files . > /dev/null
 
 #
-# Remove temporary backup directory
-# (not needed anymore, it is done by the archiver)
-#
-#rm -rf "$BACKUP/"
-
-#
 # Cleanup older backups.
 #
-#
 $SCRIPT_PATH/cleanup.py "--working-dir=$BACKUPDOMAIN" --no-dry-run --silent
-
-#
-# old version of old backup cleanup:
-#
-#LIST=`ls -r1 "$BACKUPDOMAIN" | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}\.[0-9]{2}-[0-9]{2}-[0-9]{2}.tar.gz$'`
-#i=1
-#for b in $LIST; do
-#    if [ $i -gt "$MAXBACKUPS" ]; then
-#        # echo "Removing old backup "`basename $b`
-#        rm "$b"
-#    fi
-#
-#    i=$[$i+1]
-#done
 
 $SCRIPT_PATH/df-check.sh
 
