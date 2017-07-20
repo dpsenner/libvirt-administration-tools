@@ -1,0 +1,149 @@
+#!/bin/bash
+
+#
+# Parse and validate script arguments
+#
+DOMAIN="$1"
+BACKUPDEST="$2"
+MAXBACKUPS="$3"
+
+if [ -z "$BACKUPDEST" ]; then
+    BACKUPDEST="/var/data/virtuals/backups"
+fi
+
+if [ -z "$MAXBACKUPS" ]; then
+    MAXBACKUPS=6
+fi
+
+if [ -z "$BACKUPDEST" -o -z "$DOMAIN" ]; then
+    echo "Usage: ./vm-live-backup <domain> [backup-folder] [max-backups]"
+    exit 1
+fi
+
+#
+# Determine location of the shell script
+#
+SCRIPT_PATH="`dirname \"$0\"`"              # relative
+SCRIPT_PATH="`( cd \"$SCRIPT_PATH\" && pwd )`"  # absolutized and normalized
+if [ -z "$SCRIPT_PATH" ] ; then
+	# error; for some reason, the path is not accessible
+	# to the script (e.g. permissions re-evaled after suid)
+	exit 1  # fail
+fi
+
+#
+# Generate a few backup properties
+#
+BACKUPDATE=`date "+%Y-%m-%d.%H-%M-%S"`
+BACKUPDOMAIN="$BACKUPDEST/$DOMAIN"
+BACKUP="$BACKUPDOMAIN/$BACKUPDATE"
+SNAPSHOT_SUFFIX="snapshot"
+
+#
+# Get the list of targets (disks) and the image paths.
+#
+TARGETS=`virsh domblklist "$DOMAIN" --details | grep "^file[[:space:]]*disk" | awk '{print $3}'`
+IMAGES=`virsh domblklist "$DOMAIN" --details | grep "^file[[:space:]]*disk" | awk '{print $4}'`
+
+#
+# Check if another backup is still in progress
+# This is the case when teh disk contains the pattern snapshot
+# 
+for i in $IMAGES; do
+	if [[ $i == *".$SNAPSHOT_SUFFIX" ]]; then
+		echo "Refusing to make a live backup of '$DOMAIN'!"
+		echo "The disk image '$i' appears to be a snapshot file while it should be a qcow2 base image."
+		echo "Making a snapshot of a snapshot is not a good idea and therefore the operation is aborted. At this point the intervention of a human is required."
+		echo "The first thing to try is to abort the blockjob and then retry to blockcommit the snapshot image."
+		exit 1
+	fi
+done
+
+#
+# Create backup directory
+#
+mkdir -p "$BACKUP"
+
+#
+# Create the snapshot.
+#
+DISKSPEC=""
+for t in $TARGETS; do
+    DISKSPEC="$DISKSPEC --diskspec $t,snapshot=external"
+done
+virsh snapshot-create-as --domain "$DOMAIN" --name $SNAPSHOT_SUFFIX --no-metadata \
+	--atomic --disk-only $DISKSPEC >/dev/null
+if [ $? -ne 0 ]; then
+    echo "Failed to create snapshot for $DOMAIN"
+    exit 1
+fi
+
+#
+# Copy disk images
+#
+for t in $IMAGES; do
+    NAME=`basename "$t"`
+    cp "$t" "$BACKUP"/"$NAME"
+done
+
+#
+# Merge changes back.
+#
+BACKUPIMAGES=`virsh domblklist "$DOMAIN" --details | grep "^file[[:space:]]*disk" | awk '{print $4}'`
+for t in $TARGETS; do
+    virsh blockcommit "$DOMAIN" "$t" --active --pivot > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Could not merge changes for disk $t of $DOMAIN. VM may be in invalid state."
+        exit 1
+    fi
+done
+
+#
+# Cleanup left over backup images.
+#
+for t in $BACKUPIMAGES; do
+    # echo "Cleaning up backup image $t"
+    rm -f "$t"
+done
+
+#
+# Dump the configuration information.
+#
+virsh dumpxml "$DOMAIN" >"$BACKUP/$DOMAIN.xml"
+
+#
+# Archive the backup
+#
+GZIP=-1 tar -czf "$BACKUP.tar.gz" -C "$BACKUP" --remove-files . > /dev/null
+
+#
+# Remove temporary backup directory
+# (not needed anymore, it is done by the archiver)
+#
+#rm -rf "$BACKUP/"
+
+#
+# Cleanup older backups.
+#
+#
+$SCRIPT_PATH/cleanup.py "--working-dir=$BACKUPDOMAIN" --no-dry-run --silent
+
+#
+# old version of old backup cleanup:
+#
+#LIST=`ls -r1 "$BACKUPDOMAIN" | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}\.[0-9]{2}-[0-9]{2}-[0-9]{2}.tar.gz$'`
+#i=1
+#for b in $LIST; do
+#    if [ $i -gt "$MAXBACKUPS" ]; then
+#        # echo "Removing old backup "`basename $b`
+#        rm "$b"
+#    fi
+#
+#    i=$[$i+1]
+#done
+
+$SCRIPT_PATH/df-check.sh
+
+# echo "Finished backup"
+# echo ""
+
