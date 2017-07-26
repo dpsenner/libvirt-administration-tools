@@ -27,6 +27,14 @@ Please read the contributing guidelines before starting to work on a patch, writ
 ~$ virsh shutdown $domain
 ```
 
+## Make live backup once
+
+The following command makes a live backup of `<domain>` and creates a new archive in the path `<backup-path>/<domain>/<date>-<time>.tar.gz`. Any directory or file that does not exist it will be created.
+
+```
+~/libvirt-administration-tools$ ./vm-live-backup.sh <domain> <backup-path>
+```
+
 ## Set up daily live backups
 
 This is a check list of things that need to be done to make daily backups of a domain. The following steps assume that a domain exists on the same machine, is running 24\*7 and the domain name of the virtualized guest is $domain.
