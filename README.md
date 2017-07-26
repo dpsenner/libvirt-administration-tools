@@ -37,12 +37,12 @@ The following command makes a live backup of `<domain>` and creates a new archiv
 
 ## Set up daily live backups
 
-This is a check list of things that need to be done to make daily backups of a domain. The following steps assume that a domain exists on the same machine, is running 24\*7 and the domain name of the virtualized guest is $domain.
+This is a check list of things that need to be done to make daily backups of a domain. The following steps assume that a domain exists on the same machine, is running 24\*7. The domain name of the virtualized guest is `<domain>`. The path where the backup should be stored is `<backup-path>`. Please note that backups will be made to the path `<backup-path>/<domain>/<date-<time>.tar.gz`.
 
 * Clone and checkout the master branch of this repository
 * Open crontab editor by executing `crontab -e`
 * Add the following line to the cronjobs
-* `30 23 * * * /absolute-path-to/libvirt-administration-tools/vm-live-backup.sh $domain`
+* `30 23 * * * /absolute-path-to/libvirt-administration-tools/vm-live-backup.sh <domain> <backup-path>`
 * Save and exit the editor
 
 # Known issues
