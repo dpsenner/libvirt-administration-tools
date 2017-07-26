@@ -56,6 +56,7 @@ Fixing this is quite easy and can ideally be done while the virtual machine stil
 ```
 ~/libvirt-administration-tools$ ./blockjob-abort.sh $domain
 ~/libvirt-administration-tools$ ./blockcommit.sh $domain
+~/libvirt-administration-tools$ ./targz-purge-directory.sh <path-to-backup>
 ```
 
 If the second command fails again, it is necessary to shut down the virtual machine and retry this operation while the virtual machine is offline.

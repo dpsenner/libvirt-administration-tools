@@ -109,7 +109,7 @@ virsh dumpxml "$DOMAIN" >"$BACKUP/$DOMAIN.xml"
 #
 # Archive the backup
 #
-GZIP=-1 tar -czf "$BACKUP.tar.gz" -C "$BACKUP" --remove-files . > /dev/null
+$SCRIPT_PATH/targz-purge-directory.sh "$BACKUP" > /dev/null
 
 #
 # Cleanup older backups.
