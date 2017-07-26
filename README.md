@@ -61,15 +61,15 @@ Fixing this is quite easy and can ideally be done while the virtual machine stil
 
 If the second command fails again, it is necessary to shut down the virtual machine and retry this operation while the virtual machine is offline.
 
-## Virtual machine crashes with a blue screen after migrating the virtual machine to another host
+## Windows guest crashes with a blue screen after migrating the virtual machine to another host
 
-If the host machine runs ubuntu and the blue screen shows the following error message:
+While attempting to migrate a windows guest from one ubuntu host to another we observed that the guest refused to start up. It crashed with a blue screen that showed the following error message:
 
 ```
 KMODE_EXCEPTION_NOT_HANDLED
 ```
 
-this can be caused by KVM because it injects a #GP into the guest if that tries to access an unhandled MSRs. KVM can be configured to ignore unhandled MSRs. To check if KVM on the host computer is configured to ignore unhandled MSRs run:
+This can be caused by KVM because it injects a #GP into the guest if that tries to access an unhandled MSRs. KVM can be configured to ignore unhandled MSRs. To check if KVM on the host computer is configured to ignore unhandled MSRs run:
 
 ```
 cat /sys/modules/kvm/parameters/ignore_msrs
