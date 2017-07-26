@@ -60,6 +60,11 @@ done
 mkdir -p "$BACKUP"
 
 #
+# Dump the configuration information.
+#
+virsh dumpxml "$DOMAIN" > "$BACKUP/$DOMAIN.xml"
+
+#
 # Create the snapshot.
 #
 DISKSPEC=""
@@ -100,11 +105,6 @@ for t in $BACKUPIMAGES; do
     # echo "Cleaning up backup image $t"
     rm -f "$t"
 done
-
-#
-# Dump the configuration information.
-#
-virsh dumpxml "$DOMAIN" >"$BACKUP/$DOMAIN.xml"
 
 #
 # Archive the backup
