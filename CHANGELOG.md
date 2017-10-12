@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 - 2017-10-12
+
+### Added
+
+* vm-live-backup.sh does now try up to 5 times to blockcommit while backing up. This
+  should reduce the frequency of human interventions on automated backups.
+
 ## 1.1.1 - 2017-07-26
 
 ### Added
