@@ -62,7 +62,7 @@ if __name__ == "__main__":
         (name, extension) = os.path.splitext(file)
         if extension in [".gz"]:
             absPath = os.path.join(workingDir, file)
-            created = datetime.fromtimestamp(os.path.getctime(absPath))
+            created = datetime.fromtimestamp(os.path.getmtime(absPath))
             size = os.stat(absPath).st_size
             files.append((absPath, file, created, size))
     sortedFiles = sorted(files, key=lambda file: file[2], reverse=True)

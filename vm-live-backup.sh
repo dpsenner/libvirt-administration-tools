@@ -4,25 +4,20 @@
 # Parse and validate script arguments
 #
 DOMAIN="$1"
-BACKUPDEST="$2"
+BACKUP="$2"
 DEBUG="$3"
 
-if [ -z "$BACKUPDEST" ]
+if [ -z "$BACKUP" -o -z "$DOMAIN" ]
 then
-    BACKUPDEST="/var/data/virtuals/backups"
-fi
-
-if [ -z "$BACKUPDEST" -o -z "$DOMAIN" ]
-then
-    echo "Usage: ./vm-live-backup <domain> [backup-folder]"
-    exit 1
+	echo "Usage: ./vm-live-backup <domain> <backup-destination>"
+	exit 1
 fi
 
 if [ -z "$DEBUG" ]
 then
-    DEBUG=0
+	DEBUG=0
 else
-    DEBUG=1
+	DEBUG=1
 fi
 
 #
@@ -40,9 +35,6 @@ fi
 #
 # Generate a few backup properties
 #
-BACKUPDATE=`date "+%Y-%m-%d.%H-%M-%S"`
-BACKUPDOMAIN="$BACKUPDEST/$DOMAIN"
-BACKUP="$BACKUPDOMAIN/$BACKUPDATE"
 SNAPSHOT_SUFFIX="snapshot"
 
 #
@@ -182,18 +174,6 @@ do
 	fi
 	rm -f "$t"
 done
-
-#
-# Archive the backup
-#
-$SCRIPT_PATH/targz-purge-directory.sh "$BACKUP" > /dev/null
-
-#
-# Cleanup older backups.
-#
-$SCRIPT_PATH/cleanup.py "--working-dir=$BACKUPDOMAIN" --no-dry-run --silent
-
-$SCRIPT_PATH/df-check.sh
 
 if [ $DEBUG -eq 1 ]
 then
