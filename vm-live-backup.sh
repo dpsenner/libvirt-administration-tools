@@ -5,6 +5,7 @@
 #
 DOMAIN="$1"
 BACKUPDEST="$2"
+DEBUG="$3"
 
 if [ -z "$BACKUPDEST" ]
 then
@@ -15,6 +16,13 @@ if [ -z "$BACKUPDEST" -o -z "$DOMAIN" ]
 then
     echo "Usage: ./vm-live-backup <domain> [backup-folder]"
     exit 1
+fi
+
+if [ -z "$DEBUG" ]
+then
+    DEBUG=0
+else
+    DEBUG=1
 fi
 
 #
@@ -45,7 +53,7 @@ IMAGES=`virsh domblklist "$DOMAIN" --details | grep "^file[[:space:]]*disk" | aw
 
 #
 # Check if another backup is still in progress
-# This is the case when teh disk contains the pattern snapshot
+# This is the case when the disk contains the pattern snapshot
 # 
 for i in $IMAGES
 do
@@ -64,6 +72,11 @@ done
 #
 mkdir -p "$BACKUP"
 
+if [ $DEBUG -eq 1 ]
+then
+	echo "Dumping domain configuration to xml .."
+fi
+
 #
 # Dump the configuration information.
 #
@@ -77,12 +90,18 @@ for t in $TARGETS
 do
     DISKSPEC="$DISKSPEC --diskspec $t,snapshot=external"
 done
+
+if [ $DEBUG -eq 1 ]
+then
+	echo "Creating snapshot by using $DISKSPEC .."
+fi
+
 virsh snapshot-create-as --domain "$DOMAIN" --name $SNAPSHOT_SUFFIX --no-metadata \
 	--atomic --disk-only $DISKSPEC >/dev/null
 if [ $? -ne 0 ]
 then
-    echo "Failed to create snapshot for $DOMAIN"
-    exit 1
+	echo "Failed to create snapshot for $DOMAIN"
+	exit 1
 fi
 
 #
@@ -90,8 +109,13 @@ fi
 #
 for t in $IMAGES
 do
-    NAME=`basename "$t"`
-    cp "$t" "$BACKUP"/"$NAME"
+	if [ $DEBUG -eq 1 ]
+	then
+		echo "Backing up disk image $t .."
+	fi
+
+	NAME=`basename "$t"`
+	cp "$t" "$BACKUP"/"$NAME"
 done
 
 #
@@ -100,36 +124,51 @@ done
 BACKUPIMAGES=`virsh domblklist "$DOMAIN" --details | grep "^file[[:space:]]*disk" | awk '{print $4}'`
 for t in $TARGETS
 do
-    for retry_blockcommit in {1..5}
-    do
-        virsh blockcommit "$DOMAIN" "$t" --active --pivot > /dev/null
-        status=$?
-        if [ $? -eq 0 ]
-        then
-            # abort if all was fine
-            break
-        fi
-        # check if the job was retried too often
-        if [ $retry_blockcommit -eq 5 ]
-        then
-            echo "Error: Could not merge changes for disk $t of $DOMAIN after $retry_blockcommit retries. VM may be in an invalid state now."
-            echo ""
-            echo "I need the help of a human!"
-            exit 1
-        else
-            echo "Warning: Could not merge changes for disk $t of $DOMAIN on attempt #$retry_blockcommit, retrying in 5 seconds .."
-            sleep 5
+	for retry_blockcommit in {1..5}
+	do
+		if [ $DEBUG -eq 1 ]
+		then
+			echo "Blockcommitting snapshot of disk $t .."
+		fi
+		if [ $retry_blockcommit -eq 1 ]
+		then
+			virsh blockcommit "$DOMAIN" "$t" --wait --active --pivot > /dev/null
+		else
+			virsh blockcommit "$DOMAIN" "$t" --wait --active --pivot
+		fi
+		if [ $? -eq 0 ]
+		then
+			# abort if all was fine
+			if [ $DEBUG -eq 1 ]
+			then
+				echo "Blockcommit of the snapshot on disk $t was successful."
+			fi
+			break
+		else
+			echo "Blockcommit of the snapshot on disk $t failed on retry #$retry_blockcommit."
+		fi
+		# check if the job was retried too often
+		if [ $retry_blockcommit -eq 5 ]
+		then
+			echo "Error: Could not merge changes for disk $t of $DOMAIN after $retry_blockcommit retries. VM may be in an invalid state now."
+			echo ""
+			echo "I need the help of a human!"
+			exit 1
+		else
+			echo "Warning: Could not merge changes for disk $t of $DOMAIN on attempt #$retry_blockcommit, retrying in 5 minutes .."
+			sleep 300
 
-            virsh blockjob "$DOMAIN" "$t" --abort > /dev/null
-            if [ ! $? -eq 0 ]
-            then
-                echo "Error: Could not abort the blockjob after a failed blockcommit. VM may be in an invalid state now."
-                echo ""
-                echo "I need the help of a human!"
-                exit 1
-            fi
-        fi
-    done
+			echo "Aborting blockjobs on domain $DOMAIN .."
+			virsh blockjob "$DOMAIN" "$t" --abort
+			if [ ! $? -eq 0 ]
+			then
+				echo "Error: Could not abort the blockjob on disk $t after a failed blockcommit. VM may be in an invalid state now."
+				echo ""
+				echo "I need the help of a human!"
+				exit 1
+			fi
+		fi
+	done
 done
 
 #
@@ -137,8 +176,11 @@ done
 #
 for t in $BACKUPIMAGES
 do
-    # echo "Cleaning up backup image $t"
-    rm -f "$t"
+	if [ $DEBUG -eq 1 ]
+	then
+		echo "Cleaning up snapshot file $t .."
+	fi
+	rm -f "$t"
 done
 
 #
@@ -153,6 +195,8 @@ $SCRIPT_PATH/cleanup.py "--working-dir=$BACKUPDOMAIN" --no-dry-run --silent
 
 $SCRIPT_PATH/df-check.sh
 
-# echo "Finished backup"
-# echo ""
-
+if [ $DEBUG -eq 1 ]
+then
+	echo "Finished backup"
+	echo ""
+fi
