@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.1 - 2017-11-14
+
+### Fixed
+
+* vm-live-backup.sh does now properly retry when blockcommit fails.
+
 ## 1.2.0 - 2017-10-12
 
 ### Added
