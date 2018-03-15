@@ -69,6 +69,13 @@ Fixing this is quite easy and can ideally be done while the virtual machine stil
 
 If the second command fails again, it is necessary to shut down the virtual machine and retry this operation while the virtual machine is offline.
 
+Note that this error does no longer happen on newer `libvirtd` versions, especially this version has no longer shown the symptoms:
+
+```
+$ virsh --version
+3.6.0
+```
+
 ## Windows guest crashes with a blue screen after migrating the virtual machine to another host
 
 While attempting to migrate a windows guest from one ubuntu host to another we observed that the guest refused to start up. It crashed with a blue screen that showed the following error message:
